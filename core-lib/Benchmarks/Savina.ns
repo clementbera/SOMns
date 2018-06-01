@@ -81,6 +81,8 @@ class Savina usingPlatform: platform andHarness: harness = Value (
       public ping = (
         pong <-: ping: self.
         pingsLeft:: pingsLeft - 1.
+        pingsLeft = 1 ifTrue: [ 
+        	self asyncError: 'Failed ping' ].
       )
 
       public pong: sender = (
