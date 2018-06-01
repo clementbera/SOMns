@@ -11,6 +11,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -169,8 +170,8 @@ public class ActorExecutionTrace {
       return;
     }
 
-    b.limit(b.position());
-    b.rewind();
+    ((Buffer) b).limit(((Buffer) b).position());
+    ((Buffer) b).rewind();
 
     fullBuffers.add(b);
   }

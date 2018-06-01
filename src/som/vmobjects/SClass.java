@@ -205,6 +205,7 @@ public final class SClass extends SObjectWithClass {
    * Checks whether the classes are the same, including superclass hierarchy
    * and ignoring class identity, i.e., relying on class groups/factories, too.
    */
+  @TruffleBoundary
   public boolean isKindOf(final SClass clazz) {
     if (this == clazz) {
       return true;
