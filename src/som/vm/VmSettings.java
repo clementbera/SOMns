@@ -25,6 +25,8 @@ public class VmSettings implements Settings {
   public static final boolean PROMISE_RESOLVED_WITH;
   public static final boolean REPLAY;
 
+  public static final boolean ASYNC_STACK_TRACE;
+
   public static final boolean TRUFFLE_DEBUGGER_ENABLED;
 
   public static final boolean IGV_DUMP_AFTER_PARSING;
@@ -63,6 +65,8 @@ public class VmSettings implements Settings {
 
     ACTOR_TRACING = TRUFFLE_DEBUGGER_ENABLED || getBool("som.actorTracing", false) ||
         REPLAY || MESSAGE_PARAMETERS || PROMISE_CREATION;
+
+    ASYNC_STACK_TRACE = getBool("som.actorAsyncStackTrace", false);
 
     boolean dm = getBool("som.dynamicMetrics", false);
     DYNAMIC_METRICS = dm;

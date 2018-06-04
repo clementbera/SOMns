@@ -34,6 +34,7 @@ import som.compiler.MixinDefinition;
 import som.interop.ValueConversion.ToSomConversion;
 import som.interop.ValueConversionFactory.ToSomConversionNodeGen;
 import som.interpreter.Invokable;
+import som.interpreter.actors.EventualMessage;
 import som.interpreter.nodes.ExpressionNode;
 import som.interpreter.nodes.nary.BinaryComplexOperation;
 import som.interpreter.nodes.nary.BinaryComplexOperation.BinarySystemOperation;
@@ -49,6 +50,7 @@ import som.vmobjects.SArray.SImmutableArray;
 import som.vmobjects.SObjectWithClass;
 import som.vmobjects.SSymbol;
 import tools.SourceCoordinate;
+import tools.asyncStackTraces.AsyncTraceEntry;
 
 
 public final class SystemPrims {
@@ -232,66 +234,19 @@ public final class SystemPrims {
   public abstract static class PrintAsyncStackTracePrim extends UnaryExpressionNode {
     @Specialization
     public final Object doSObject(final Object receiver) {
-      printAsyncStackTrace(2, null);
-      return receiver;
-    }
+      PrintStackTracePrim.printStackTrace(2, null);
 
-    @TruffleBoundary
-    public static void printAsyncStackTrace(final int skipDnuFrames,
-        final SourceSection topNode) {
-      ArrayList<String> method = new ArrayList<String>();
-      ArrayList<String> location = new ArrayList<String>();
-      int[] maxLengthMethod = {0};
-      boolean[] first = {true};
-      Output.println("Async Stack Trace");
-
-      Truffle.getRuntime().iterateFrames(new FrameInstanceVisitor<Object>() {
-        @Override
-        public Object visitFrame(final FrameInstance frameInstance) {
-          RootCallTarget ct = (RootCallTarget) frameInstance.getCallTarget();
-
-          // TODO: do we need to handle other kinds of root nodes?
-          if (!(ct.getRootNode() instanceof Invokable)) {
-            return null;
-          }
-
-          Invokable m = (Invokable) ct.getRootNode();
-
-          String id = m.getName();
-          method.add(id);
-          maxLengthMethod[0] = Math.max(maxLengthMethod[0], id.length());
-          Node callNode = frameInstance.getCallNode();
-          if (callNode != null || first[0]) {
-            SourceSection nodeSS;
-            if (first[0]) {
-              first[0] = false;
-              nodeSS = topNode;
-            } else {
-              nodeSS = callNode.getEncapsulatingSourceSection();
-            }
-            if (nodeSS != null) {
-              location.add(nodeSS.getSource().getName()
-                  + SourceCoordinate.getLocationQualifier(nodeSS));
-            } else {
-              location.add("");
-            }
-          } else {
-            location.add("");
-          }
-
-          return null;
+      // Print previous
+      EventualMessage current = EventualMessage.getCurrentExecutingMessage();
+      if (current != null) {
+        AsyncTraceEntry entry = current.getAsyncTraceEntry();
+        while (entry != null) {
+          Output.print(entry.getLocalStacktrace());
+          entry = entry.getPrevEntry();
         }
-      });
-
-      StringBuilder sb = new StringBuilder();
-      for (int i = method.size() - 1; i >= skipDnuFrames; i--) {
-        sb.append(String.format("\t%1$-" + (maxLengthMethod[0] + 4) + "s",
-            method.get(i)));
-        sb.append(location.get(i));
-        sb.append('\n');
       }
 
-      Output.print(sb.toString());
+      return receiver;
     }
   }
 

@@ -69,7 +69,6 @@ public class EventualSendNode extends ExprWithTagsNode {
 
     AbstractMessageSendNode invoke = MessageSendNode.createGeneric(selector, null, source);
     ReceivedMessage receivedMsg = new ReceivedMessage(invoke, selector, lang);
-
     return Truffle.getRuntime().createCallTarget(receivedMsg);
   }
 
